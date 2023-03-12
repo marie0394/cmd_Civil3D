@@ -31,6 +31,13 @@ namespace cmd_AutoCAD.text
             // Get the editor and prompt the user to select a text element
             Editor ed = doc.Editor;
 
+            PromptDoubleOptions valueOptions = new PromptDoubleOptions("\nEnter the value to add to the text: ");
+            valueOptions.AllowZero = true;
+            valueOptions.AllowNegative = true;
+            PromptDoubleResult valueResult = ed.GetDouble(valueOptions);
+            if (valueResult.Status != PromptStatus.OK)
+                return;
+
             // Loop until the user cancels or ends the command
             while (true)
             {
@@ -65,7 +72,7 @@ namespace cmd_AutoCAD.text
 
 
                     // Add a value to the number
-                    double valueToAdd = 0.15; // Change this to the value you want to add
+                    double valueToAdd = valueResult.Value; // Change this to the value you want to add
                     double resultValue = number + valueToAdd;
 
                     //Convert number to text

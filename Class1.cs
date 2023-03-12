@@ -21,53 +21,6 @@ namespace cmd_AutoCAD.text
 
         #endregion
 
-        [CommandMethod("HelloWorld")]
-        public void AddValueToSelectedTextElement()
-        {
-            // Get the current document and database
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-
-            // Get the editor and prompt the user to select a text element
-            Editor ed = doc.Editor;
-            PromptEntityOptions options = new PromptEntityOptions("\nSelect a text element: ");
-            options.SetRejectMessage("\nInvalid selection.");
-            options.AddAllowedClass(typeof(DBText), true);
-            PromptEntityResult result = ed.GetEntity(options);
-            if (result.Status != PromptStatus.OK)
-                return;
-
-            // Open the selected text element for write
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                DBText text = (DBText)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
-
-                // Convert the text to a number
-                double number;
-                if (!double.TryParse(text.TextString, out number))
-                {
-                    ed.WriteMessage("\nThe selected text element does not contain a number.");
-                    return;
-                }
-
-                // Add a value to the number
-                double valueToAdd = 0.15; // Change this to the value you want to add
-                double resultValue = number + valueToAdd;
-
-
-                // Add a value to the text
-                text.TextString = resultValue.ToString();
-
-
-                // Commit the transaction
-                tr.Commit();
-
-            }
-
-            // Refresh the display
-            ed.Regen();
-        }
-
         [CommandMethod("AddValueToTextNumber")]
         public void ChangeTextColor()
         {

@@ -205,44 +205,7 @@ namespace cmd_AutoCAD.text
             
         }
 
-        [CommandMethod("RenameAnonBlocks", CommandFlags.UsePickSet)]
-        public void RenameAnonBlocks()
-        {
-            // Get the current document and database
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-
-            // Get the editor and prompt the user to select a text element
-            Editor ed = doc.Editor;
-
-            // Get the previously selected objects
-            PromptSelectionResult psr = ed.SelectImplied();
-            if (psr.Status != PromptStatus.OK)
-            {
-                ed.WriteMessage("\nNo objects were previously selected.");
-                return;
-            }
-
-            SelectionSet ss = psr.Value;
-            ObjectId[] anonymousBlockIds = ss.GetObjectIds();
-
-            // Open the selected text element for write
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                int number = 0;
-                foreach (ObjectId anonymousBlockId in anonymousBlockIds)
-                {
-                    BlockTableRecord anonymousBlock = (BlockTableRecord)tr.GetObject(anonymousBlockId, OpenMode.ForWrite);
-                    anonymousBlock.Name = number.ToString();
-                    number += 1;
-                }
-                // Commit the transaction
-                tr.Commit();
-
-
-            }
-
-        }
+        
 
     }
 }

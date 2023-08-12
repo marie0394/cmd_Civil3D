@@ -17,7 +17,7 @@ namespace cmd_AutoCAD
 {
     public class TextCommands : IExtensionApplication
     {
-       
+
         #region IExtensionApplication Members
         public void Initialize()
         {
@@ -212,108 +212,6 @@ namespace cmd_AutoCAD
 
         }
 
-
-        [CommandMethod("AGREGACOTASACERA")]
-        public static void AgregaCotasAcera()
-        {
-            // Get the active document and database
-            Document doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-
-            // Get the editor and prompt the user to select a text element
-            Editor ed = doc.Editor;
-
-            // Start a transaction
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                // Get the alignment object
-                PromptEntityOptions alignOptions = new PromptEntityOptions("\nSelect an alignment: ");
-                alignOptions.SetRejectMessage("\nObject selected is not an alignment.");
-                alignOptions.AddAllowedClass(typeof(Alignment), true);
-                PromptEntityResult per = ed.GetEntity(alignOptions);
-                if (per.Status != PromptStatus.OK) return;
-                Alignment align = tr.GetObject(per.ObjectId, OpenMode.ForRead) as Alignment;
-
-                //Get the design profile agter opening the alignment
-                ObjectId FGProfId = GetDesignProfile(align);
-                Autodesk.Civil.DatabaseServices.Profile profile = tr.GetObject(FGProfId, OpenMode.ForRead) as Autodesk.Civil.DatabaseServices.Profile;
-
-                // Prompt the user to select a station
-                PromptPointOptions stationOpts = new PromptPointOptions("\nSelect a station: ");
-                stationOpts.AllowNone = false;
-                stationOpts.AllowArbitraryInput = false;
-                //stationOpts.AllowNegative = false;
-                stationOpts.UseDashedLine = true;
-
-                PromptPointResult stationRes = ed.GetPoint(stationOpts);
-
-                // Exit if the user cancels the command or does not select a station
-                if (stationRes.Status != PromptStatus.OK)
-                    return;
-
-                // Getting the north and east coordinates from the selected point
-                Point3d clickedPoint = stationRes.Value;
-                double choosenPointEast = clickedPoint.X;
-                double choosenPointNorth = clickedPoint.Y;
-
-                double station = 0.0;
-                double offset = 0.0;
-
-                // Find the station and offset from a point to the alignment
-                align.StationOffset(choosenPointEast, choosenPointNorth, ref station, ref offset);
-
-                // Get the elevation of the selected station
-                double stationElevation = profile.ElevationAt(station);
-                ed.WriteMessage("\nSelected station elevation: {0:F3}", stationElevation);
-
-                // Find the coordinates of a station in the alignment
-                double stationPointEast = 0.0;
-                double stationPointNorth = 0.0;
-                align.PointLocation(station, 0.0, ref stationPointEast, ref stationPointNorth);
-                Point3d stationPoint = new Point3d(stationPointEast, stationPointNorth, 0);
-
-                PromptDoubleOptions roadWidthOptions = new PromptDoubleOptions("\nIngrese ancho de vía: ")
-                {
-                    AllowZero = true,
-                    AllowNegative = true,
-
-                };
-
-                PromptDoubleResult roadWidthResult = ed.GetDouble(roadWidthOptions);
-                if (roadWidthResult.Status != PromptStatus.OK) return;
-
-                double roadWidth = roadWidthResult.Value;
-                double perpendicularAngle = calculateAngleBetweenAandB(stationPoint, clickedPoint);
-                Point3d roadPoint = GetCoordsAtOffset(stationPoint, perpendicularAngle, roadWidth);
-                double aceraElevation = stationElevation - (roadWidth - 0.4) * 0.03;
-
-                MText mt = new MText
-                {
-                    Location = roadPoint,
-                    Contents = aceraElevation.ToString("0.000"),
-                    Rotation =  perpendicularAngle - Math.PI / 2,
-                    TextHeight = 0.8,
-                    Layer = "Cotas_generadas"
-                };
-
-                // Open the block table for read
-                BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-
-                // Open the block table record model space for write
-                BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                // Add the MText object to the block table record
-                btr.AppendEntity(mt);
-                tr.AddNewlyCreatedDBObject(mt, true);
-
-                // Commit the transaction
-                tr.Commit();
-            }
-
-               
-
-        }
-
         public static ObjectId GetDesignProfile(Alignment align)
         {
             var retval = ObjectId.Null;
@@ -330,6 +228,7 @@ namespace cmd_AutoCAD
                 }
                 tr.Commit();
             }
+
             return retval;
         }
 

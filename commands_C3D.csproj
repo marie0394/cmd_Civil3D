@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExportCommands.cs" />
+    <Compile Include="MaterialCommands.cs" />
     <Compile Include="TextCommands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -21,7 +21,7 @@ namespace cmd_AutoCAD
         #region IExtensionApplication Members
         public void Initialize()
         {
-
+            
         }
 
         public void Terminate()
@@ -41,28 +41,78 @@ namespace cmd_AutoCAD
             // Get the editor and prompt the user to select a text element
             Editor ed = doc.Editor;
 
-            PromptDoubleOptions inputOptions = new PromptDoubleOptions("\nEnter value to be added or : ")
+            bool multiSelection = false;
+            bool isValueDouble = false;
+            double valueToAdd = 0;
+
+
+            while (!isValueDouble)
             {
-                AllowZero = true,
-                AllowNegative = true,
-
-            };
-
-            string keywordColor = "Color";
-            // Add a keyword option to the prompt
-            inputOptions.Keywords.Add(keywordColor);
-
-            // Get the value entered by the user
-            PromptDoubleResult inputResult = ed.GetDouble(inputOptions);
-            if (inputResult.Status == PromptStatus.Keyword)
-            {
-                if (inputResult.StringResult == keywordColor)
+                PromptDoubleOptions inputOptions = new PromptDoubleOptions("\nEnter value to be added or : ")
                 {
-                    Application.ShowAlertDialog("Entered keyword: " + inputResult.StringResult);
+                    AllowZero = true,
+                    AllowNegative = true,
+
+                };
+
+                string keywordColor = "Color";
+                string keywordMode = "Mode";
+
+                // Add a keyword option to the prompt
+                inputOptions.Keywords.Add(keywordColor);
+                inputOptions.Keywords.Add(keywordMode);
+
+                // Get the value entered by the user
+                PromptDoubleResult inputResult = ed.GetDouble(inputOptions);
+                if (inputResult.Status == PromptStatus.Keyword)
+                {
+                    if (inputResult.StringResult == keywordColor)
+                    {
+                        Application.ShowAlertDialog("Entered keyword: " + inputResult.StringResult);
+                    }
+                    if (inputResult.StringResult == keywordMode)
+                    {
+                        string keywordSingle = "Single";
+                        string keywordMulti = "Multiple";
+                        PromptKeywordOptions modeOptions = new PromptKeywordOptions("Select a mode:");
+                        modeOptions.Keywords.Add(keywordSingle);
+                        modeOptions.Keywords.Add(keywordMulti);
+                        //options.AppendKeywordsToMessage = true;
+
+                        PromptResult resultMode = ed.GetKeywords(modeOptions);
+                        if (resultMode.Status == PromptStatus.OK)
+                        {
+                            string selectedKeyword = resultMode.StringResult;
+                            if (selectedKeyword == keywordSingle)
+                            {
+                                multiSelection = false;
+                            }
+                            else if (selectedKeyword == keywordMulti)
+                            {
+                                multiSelection = true;
+                            }
+                        }
+                        else if (resultMode.Status == PromptStatus.Cancel)
+                        {
+                            ed.WriteMessage("Command canceled.");
+                        }
+                        // Is this else needed?
+                        else
+                        {
+                            ed.WriteMessage("Error occurred.");
+                        }
+                    }
+                    
+
                 }
-                
+                else
+                {
+                    isValueDouble = true;
+                    valueToAdd = inputResult.Value; // Change this to the value you want to add
+                }
             }
 
+            
 
             // Loop until the user cancels or ends the command
             while (true)
@@ -97,7 +147,7 @@ namespace cmd_AutoCAD
 
 
                     // Add a value to the number
-                    double valueToAdd = inputResult.Value; // Change this to the value you want to add
+                    
                     double resultValue = number + valueToAdd;
 
                     //Convert number to text

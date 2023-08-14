@@ -12,6 +12,8 @@ using static System.Collections.Specialized.BitVector32;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Reflection;
 using System;
+using Autodesk.AutoCAD.Windows;
+
 
 namespace cmd_AutoCAD
 {
@@ -42,6 +44,9 @@ namespace cmd_AutoCAD
             Editor ed = doc.Editor;
 
             bool multiSelection = false;
+            bool defaultColor = true;
+            Color selectedColor = Color.FromColorIndex(ColorMethod.ByAci, 0);;
+
             bool isValueDouble = false;
             double valueToAdd = 0;
 
@@ -68,7 +73,44 @@ namespace cmd_AutoCAD
                 {
                     if (inputResult.StringResult == keywordColor)
                     {
-                        Application.ShowAlertDialog("Entered keyword: " + inputResult.StringResult);
+                        string keywordDefault = "Default";
+                        string keywordOtherColor = "Select";
+                        PromptKeywordOptions colorOptions = new PromptKeywordOptions("Select a mode:");
+                        colorOptions.Keywords.Add(keywordDefault);
+                        colorOptions.Keywords.Add(keywordOtherColor);
+                        colorOptions.Keywords.Default = keywordDefault;
+                        colorOptions.AllowNone = true;
+
+                        PromptResult resultColor = ed.GetKeywords(colorOptions);
+                        if (resultColor.Status == PromptStatus.OK)
+                        {
+                            string selectedKeyword = resultColor.StringResult;
+                            if (selectedKeyword == keywordDefault)
+                            {
+                                defaultColor = true;
+                            }
+                            else if (selectedKeyword == keywordOtherColor)
+                            {
+                                
+                                ed.WriteMessage("Select color from window");
+                                ColorDialog cd = new ColorDialog
+                                {
+                                    IncludeByBlockByLayer = true
+                                };
+                                cd.ShowDialog();
+                                selectedColor = cd.Color;
+                                defaultColor = false;
+                            }
+                        }
+                        else if (resultColor.Status == PromptStatus.Cancel)
+                        {
+                            ed.WriteMessage("Command canceled.");
+                        }
+                        // Is this else needed?
+                        else
+                        {
+                            ed.WriteMessage("Error occurred.");
+                        }
                     }
                     if (inputResult.StringResult == keywordMode)
                     {
@@ -157,9 +199,11 @@ namespace cmd_AutoCAD
                     text.TextString = resultText;
 
                     // Set the color of the text entity to purple.
-                    Color purple = Color.FromColorIndex(ColorMethod.ByAci, 211);
-                    text.Color = purple;
-
+                    if (!defaultColor)
+                    {
+                        text.Color = selectedColor;
+                    }
+                    
                     // Save the changes made to the text entity.
                     text.RecordGraphicsModified(true);
 

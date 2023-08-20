@@ -4,13 +4,9 @@ using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Geometry;
-using System.Diagnostics;
 using Autodesk.Civil.DatabaseServices;
-using System.Collections.Generic;
-using Autodesk.Aec.Geometry;
-using static System.Collections.Specialized.BitVector32;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Reflection;
+using C3D_Entity = Autodesk.Civil.DatabaseServices.Entity;
+using CAD_Entity = Autodesk.AutoCAD.DatabaseServices.Entity;
 using System;
 using Autodesk.AutoCAD.Windows;
 
@@ -119,7 +115,6 @@ namespace cmd_AutoCAD
                         PromptKeywordOptions modeOptions = new PromptKeywordOptions("Select a mode:");
                         modeOptions.Keywords.Add(keywordSingle);
                         modeOptions.Keywords.Add(keywordMulti);
-                        //options.AppendKeywordsToMessage = true;
 
                         PromptResult resultMode = ed.GetKeywords(modeOptions);
                         if (resultMode.Status == PromptStatus.OK)
@@ -162,50 +157,68 @@ namespace cmd_AutoCAD
                 PromptEntityOptions options = new PromptEntityOptions("\nSelect a text element: ");
                 options.SetRejectMessage("\nInvalid selection.");
                 options.AddAllowedClass(typeof(DBText), true);
+                options.AddAllowedClass(typeof(MText), true);
                 PromptEntityResult result = ed.GetEntity(options);
                 if (result.Status != PromptStatus.OK)
                     return;
 
+                string textString = "";
+                
                 // Open the selected text element for write
                 using (Transaction tr = db.TransactionManager.StartTransaction())
                 {
-                    DBText text = (DBText)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+                    CAD_Entity textEntity = (CAD_Entity)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+                    if (textEntity is DBText dbText)
+                    {
+                        textString = dbText.TextString;
+                    }
+                    else if (textEntity is MText mText)
+                    {
+                        textString = mText.Contents;
+                    }
+
 
                     // Convert the text to a number
                     int decimalPlaces = 0;
-                    string resultText;
-                    if (!double.TryParse(text.TextString, out double number))
+                    string newText;
+                    if (!double.TryParse(textString, out double textNumber))
                     {
                         ed.WriteMessage("\nThe selected text element does not contain a number.");
                         return; // Esto causa que el método termine
                     }
 
                     // Count the number of decimal places
-                    int decimalIndex = text.TextString.IndexOf(".");
+                    int decimalIndex = textString.IndexOf(".");
                     if (decimalIndex >= 0)
                     {
-                        decimalPlaces = text.TextString.Length - decimalIndex - 1;
+                        decimalPlaces = textString.Length - decimalIndex - 1;
                     }
 
 
                     // Add a value to the number
                     
-                    double resultValue = number + valueToAdd;
+                    double newValue = textNumber + valueToAdd;
 
                     //Convert number to text
-                    resultText = resultValue.ToString("0." + new string('0', decimalPlaces));
+                    newText = newValue.ToString("0." + new string('0', decimalPlaces));
 
-                    // Add a value to the text
-                    text.TextString = resultText;
+                    if (textEntity is DBText dbTextEntity)
+                    {
+                        dbTextEntity.TextString = newText;
+                    }
+                    else if (textEntity is MText mTextEntity)
+                    {
+                        mTextEntity.Contents = newText;
+                    }
 
                     // Set the color of the text entity to purple.
                     if (!defaultColor)
                     {
-                        text.Color = selectedColor;
+                        textEntity.Color = selectedColor;
                     }
-                    
+
                     // Save the changes made to the text entity.
-                    text.RecordGraphicsModified(true);
+                    textEntity.RecordGraphicsModified(true);
 
                     // Commit the transaction
                     tr.Commit();

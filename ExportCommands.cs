@@ -4,7 +4,8 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.Civil.ApplicationServices;
 using Autodesk.Civil.DatabaseServices;
-using Entity = Autodesk.Civil.DatabaseServices.Entity;
+using C3D_Entity = Autodesk.Civil.DatabaseServices.Entity;
+using CAD_Entity = Autodesk.AutoCAD.DatabaseServices.Entity;
 using System.Runtime.ConstrainedExecution;
 
 namespace cmd_AutoCAD   
@@ -41,7 +42,7 @@ namespace cmd_AutoCAD
             {
                 using (Transaction tr = db.TransactionManager.StartTransaction())
                 {
-                    Entity entity = (Entity)tr.GetObject(result.ObjectId, OpenMode.ForRead);
+                    CAD_Entity entity = (CAD_Entity)tr.GetObject(result.ObjectId, OpenMode.ForRead);
 
                     // Get the type of the object
                     string objectType = entity.GetType().ToString();

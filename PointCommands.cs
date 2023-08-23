@@ -75,7 +75,7 @@ namespace cmd_C3D
             }
         }
 
-        public static ObjectId CreateNewPointGroup(string name, Color color, PointGroupCollection pointGroups)
+        public static ObjectId CreateNewPointGroup(string name, PointGroupCollection pointGroups)
         {
             ObjectId newPointGroupId = pointGroups.Add(name);
             return newPointGroupId;
@@ -86,5 +86,7 @@ namespace cmd_C3D
             ObjectId newPointLabelStyleId = pointLabelStyles.Add(name);
             return newPointLabelStyleId;
         }
+
+        //ToDo: CreateNewPointStyle 
     }
 }

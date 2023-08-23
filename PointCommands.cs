@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Autodesk.Civil.DatabaseServices;
 using Autodesk.Civil.ApplicationServices;
 using Autodesk.AutoCAD.Colors;
+using System.Xml.Linq;
 
 namespace cmd_C3D
 {
@@ -31,23 +32,17 @@ namespace cmd_C3D
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
             Editor ed = doc.Editor;
-            CivilDocument civilDoc = CivilApplication.ActiveDocument;
-
-            if (civilDoc == null)
-            {
-                // Handle the case where the document is not a Civil 3D document
-                return;
-            }
 
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
                 // Access the COGO points collection
-                CogoPointCollection points = civilDoc.CogoPoints;
+                CogoPointCollection cogoPoints = CogoPointCollection.GetCogoPoints(db);
+                PointGroupCollection pointGroups = PointGroupCollection.GetPointGroups(db);
 
                 // Create a set to store unique description values
                 HashSet<string> uniqueDescriptions = new HashSet<string>();
 
-                foreach (ObjectId pointId in points)
+                foreach (ObjectId pointId in cogoPoints)
                 {
                     CogoPoint cogoPoint = tr.GetObject(pointId, OpenMode.ForRead) as CogoPoint;
                     if (cogoPoint != null)
@@ -61,6 +56,13 @@ namespace cmd_C3D
                     }
                 }
 
+                foreach (string uniqueDescription in uniqueDescriptions)
+                {
+                    // ObjectId newPointGroup = pointGroups.Add(uniqueDescription);
+                    Color purple = Color.FromColorIndex(ColorMethod.ByAci, 211);
+                    CreateNewPointGroup(uniqueDescription, purple, pointGroups);
+                }
+
 
 
                 tr.Commit();
@@ -68,9 +70,9 @@ namespace cmd_C3D
             }
         }
 
-        public static void CreateNewPointGroup(string name, Color color)
+        public static void CreateNewPointGroup(string name, Color color, PointGroupCollection pointGroups)
         {
-
+            ObjectId newPointGroup = pointGroups.Add(name);
         }
     }
 }

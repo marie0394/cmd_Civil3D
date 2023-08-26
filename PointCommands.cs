@@ -95,12 +95,28 @@ namespace cmd_C3D
         {
             ObjectId newPointStyleId = pointStyles.Add(name);
             PointStyle pointStyle = newPointStyleId.GetObject(OpenMode.ForWrite) as PointStyle;
-            PointDisplayStyleType markerType = 0;
-            PointDisplayStyleType labelType = 0;
-            DisplayStyle displayStylePlanMarker = pointStyle.GetDisplayStylePlan(markerType); //0 for marker, `1 for label
-            DisplayStyle displayStylePlanLabel = pointStyle.GetDisplayStylePlan(labelType); //0 for marker, `1 for label
+
+            // Gets the object DisplayStyle for both marker and label
+            DisplayStyle displayStylePlanMarker = pointStyle.GetDisplayStylePlan(PointDisplayStyleType.Marker); 
+            DisplayStyle displayStylePlanLabel = pointStyle.GetDisplayStylePlan(PointDisplayStyleType.Label);
+
+            // A color and layer is defined for each displayStyle
             displayStylePlanMarker.Color = color;
+            displayStylePlanMarker.Layer = "V-NODE";
             displayStylePlanLabel.Color = color;
+            displayStylePlanLabel.Layer = "V-NODE-TEXT";
+
+            // Set size property
+            pointStyle.SizeType = MarkerSizeType.DrawingScale;
+            pointStyle.MarkerSize = 1.0/ 1000;
+
+            // Defining the value for the PointMarkerDisplayType. Only need Custom type.
+            pointStyle.MarkerType = PointMarkerDisplayType.UseCustomMarker;
+
+            // Set the custom market style
+            pointStyle.CustomMarkerStyle = CustomMarkerType.CustomMarkerX; //XMarker
+            pointStyle.CustomMarkerSuperimposeStyle = CustomMarkerSuperimposeType.Circle; //Circle
+
             return newPointStyleId;
         }
     }

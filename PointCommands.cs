@@ -41,6 +41,7 @@ namespace cmd_C3D
                 CogoPointCollection cogoPoints = CogoPointCollection.GetCogoPoints(db);
                 PointGroupCollection pointGroups = PointGroupCollection.GetPointGroups(db);
                 LabelStyleCollection pointLabelStyles = civilDocument.Styles.LabelStyles.PointLabelStyles.LabelStyles;
+                PointStyleCollection pointStyles = civilDocument.Styles.PointStyles;
 
                 // Create a set to store unique description values
                 HashSet<string> uniqueDescriptions = new HashSet<string>();
@@ -63,10 +64,12 @@ namespace cmd_C3D
                 {
                     // ObjectId newPointGroup = pointGroups.Add(uniqueDescription);
                     Color purple = Color.FromColorIndex(ColorMethod.ByAci, 211);
-                    ObjectId newPointGroupId = CreateNewPointGroup(uniqueDescription, purple, pointGroups);
+                    ObjectId newPointGroupId = CreateNewPointGroup(uniqueDescription, pointGroups);
                     ObjectId newPointLabelStyleId = CreateNewLabelStyle(uniqueDescription, purple, pointLabelStyles);
+                    ObjectId newPointStyleId = CreateNewPointStyle(uniqueDescription, purple, pointStyles);
                     PointGroup pointGrp = newPointGroupId.GetObject(OpenMode.ForWrite) as PointGroup;
                     pointGrp.PointLabelStyleId = newPointLabelStyleId;
+                    pointGrp.PointStyleId = newPointStyleId;
                 }
                 
 
@@ -87,6 +90,10 @@ namespace cmd_C3D
             return newPointLabelStyleId;
         }
 
-        //ToDo: CreateNewPointStyle 
+        public static ObjectId CreateNewPointStyle(string name, Color color, PointStyleCollection pointStyles)
+        {
+            ObjectId newPointStyleId = pointStyles.Add(name);
+            return newPointStyleId;
+        }
     }
 }

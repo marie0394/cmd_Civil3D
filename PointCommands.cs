@@ -86,13 +86,21 @@ namespace cmd_C3D
 
         public static ObjectId CreateNewLabelStyle(string name, Color color, LabelStyleCollection pointLabelStyles)
         {
-            ObjectId newPointLabelStyleId = pointLabelStyles.Add(name);
-            return newPointLabelStyleId;
+            ObjectId pointLabelStyleId = pointLabelStyles.Add(name);
+            return pointLabelStyleId;
+            
         }
 
         public static ObjectId CreateNewPointStyle(string name, Color color, PointStyleCollection pointStyles)
         {
             ObjectId newPointStyleId = pointStyles.Add(name);
+            PointStyle pointStyle = newPointStyleId.GetObject(OpenMode.ForWrite) as PointStyle;
+            PointDisplayStyleType markerType = 0;
+            PointDisplayStyleType labelType = 0;
+            DisplayStyle displayStylePlanMarker = pointStyle.GetDisplayStylePlan(markerType); //0 for marker, `1 for label
+            DisplayStyle displayStylePlanLabel = pointStyle.GetDisplayStylePlan(labelType); //0 for marker, `1 for label
+            displayStylePlanMarker.Color = color;
+            displayStylePlanLabel.Color = color;
             return newPointStyleId;
         }
     }

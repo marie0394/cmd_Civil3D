@@ -98,7 +98,7 @@ namespace cmd_C3D
 
         public static ObjectId CreateNewLabelStyle(string name, Color color, LabelStyleCollection pointLabelStyles)
         {
-            double textSize = 3.0/1000;
+            double textSize = 1.5/1000;
             ObjectId pointLabelStyleId = pointLabelStyles.Add(name);
             LabelStyle pointLabelStyle = pointLabelStyleId.GetObject(OpenMode.ForWrite) as LabelStyle;
             pointLabelStyle.RemoveComponent("Point Number");

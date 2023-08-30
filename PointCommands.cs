@@ -8,6 +8,8 @@ using Autodesk.Civil.ApplicationServices;
 using Autodesk.AutoCAD.Colors;
 using System.Xml.Linq;
 using Autodesk.Civil.DatabaseServices.Styles;
+using Autodesk.AutoCAD.Windows.Data;
+using System;
 
 namespace cmd_C3D
 {
@@ -60,14 +62,17 @@ namespace cmd_C3D
                     }
                 }
 
+                Random rand = new Random();
                 foreach (string uniqueDescription in uniqueDescriptions)
                 {
                     // ObjectId newPointGroup = pointGroups.Add(uniqueDescription);
-                    Color purple = Color.FromColorIndex(ColorMethod.ByAci, 211);
+                    short rInt = (short) (rand.Next(1, 24) * 10);
+                    Color randColor = Color.FromColorIndex(ColorMethod.ByAci, rInt);
                     ObjectId newPointGroupId = CreateNewPointGroup(uniqueDescription, pointGroups);
-                    ObjectId newPointLabelStyleId = CreateNewLabelStyle(uniqueDescription, purple, pointLabelStyles);
-                    ObjectId newPointStyleId = CreateNewPointStyle(uniqueDescription, purple, pointStyles);
+                    ObjectId newPointLabelStyleId = CreateNewLabelStyle(uniqueDescription, randColor, pointLabelStyles);
+                    ObjectId newPointStyleId = CreateNewPointStyle(uniqueDescription, randColor, pointStyles);
                     PointGroup pointGrp = newPointGroupId.GetObject(OpenMode.ForWrite) as PointGroup;
+                    SetDescriptionQuery(pointGrp, uniqueDescription);
                     pointGrp.PointLabelStyleId = newPointLabelStyleId;
                     pointGrp.PointStyleId = newPointStyleId;
                 }
@@ -84,9 +89,31 @@ namespace cmd_C3D
             return newPointGroupId;
         }
 
+        public static void SetDescriptionQuery(PointGroup pointGroup, string description)
+        {
+            StandardPointGroupQuery standardQuery = new StandardPointGroupQuery();
+            standardQuery.IncludeRawDescriptions = $"{description}";
+            pointGroup.SetQuery(standardQuery);
+        }
+
         public static ObjectId CreateNewLabelStyle(string name, Color color, LabelStyleCollection pointLabelStyles)
         {
+            double textSize = 3.0/1000;
             ObjectId pointLabelStyleId = pointLabelStyles.Add(name);
+            LabelStyle pointLabelStyle = pointLabelStyleId.GetObject(OpenMode.ForWrite) as LabelStyle;
+            pointLabelStyle.RemoveComponent("Point Number");
+            ObjectIdCollection txtComponentIds = pointLabelStyle.GetComponents(LabelStyleComponentType.Text);
+            LabelStyleTextComponent pointElevationText = txtComponentIds[0].GetObject(OpenMode.ForWrite) as LabelStyleTextComponent;
+            pointElevationText.General.AnchorComponent.Value = ""; // Set anchor to <feature>
+            pointElevationText.General.AnchorPoint.Value = Autodesk.Civil.AnchorLocationType.TopRight;
+            pointElevationText.Text.Color.Value = color;
+            pointElevationText.Text.Height.Value = textSize;
+            pointElevationText.Text.XOffset.Value = 0;
+
+            LabelStyleTextComponent pointDescriptionText = txtComponentIds[1].GetObject(OpenMode.ForWrite) as LabelStyleTextComponent;
+            pointDescriptionText.Text.Color.Value = color;
+            pointDescriptionText.Text.Height.Value = textSize;
+
             return pointLabelStyleId;
             
         }

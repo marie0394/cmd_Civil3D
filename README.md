@@ -16,5 +16,9 @@ Command allows to select a color parameter optionally. This will change the colo
 
 Mode parameter exists to change between single and multiple selection but only single selection is working for now.
 
+## MULTIPOINTGROUPS
+Given the existing Cogo Points in a file, this creates a point group for each unique Raw Description. Each point group queries the points by the Raw Description. Point Styles and Point Label Styles are created for each point group and these have a random color set. Points will show the Description and Elevation components.
+
+
 ## FINDENTITYTYPE
 It return the entity type of the selected object. Not much use, only exists to find the object in the API documentation.

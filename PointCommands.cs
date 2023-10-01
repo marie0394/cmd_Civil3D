@@ -98,21 +98,25 @@ namespace cmd_C3D
 
         public static ObjectId CreateNewLabelStyle(string name, Color color, LabelStyleCollection pointLabelStyles)
         {
-            double textSize = 1.5/1000;
+            double textSize = 0.5/1000;
+            double gapSize = 0.1 / 1000;
             ObjectId pointLabelStyleId = pointLabelStyles.Add(name);
             LabelStyle pointLabelStyle = pointLabelStyleId.GetObject(OpenMode.ForWrite) as LabelStyle;
             pointLabelStyle.RemoveComponent("Point Number");
             ObjectIdCollection txtComponentIds = pointLabelStyle.GetComponents(LabelStyleComponentType.Text);
             LabelStyleTextComponent pointElevationText = txtComponentIds[0].GetObject(OpenMode.ForWrite) as LabelStyleTextComponent;
             pointElevationText.General.AnchorComponent.Value = ""; // Set anchor to <feature>
-            pointElevationText.General.AnchorPoint.Value = Autodesk.Civil.AnchorLocationType.TopRight;
+            pointElevationText.General.AnchorPoint.Value = Autodesk.Civil.AnchorLocationType.MiddleRight;
             pointElevationText.Text.Color.Value = color;
             pointElevationText.Text.Height.Value = textSize;
             pointElevationText.Text.XOffset.Value = 0;
+            pointElevationText.Text.Attachment.Value = Autodesk.Civil.LabelTextAttachmentType.BottomLeft;
+            pointElevationText.Border.Gap.Value = gapSize;
 
             LabelStyleTextComponent pointDescriptionText = txtComponentIds[1].GetObject(OpenMode.ForWrite) as LabelStyleTextComponent;
             pointDescriptionText.Text.Color.Value = color;
             pointDescriptionText.Text.Height.Value = textSize;
+            pointElevationText.Border.Gap.Value = gapSize;
 
             return pointLabelStyleId;
             
@@ -135,7 +139,7 @@ namespace cmd_C3D
 
             // Set size property
             pointStyle.SizeType = MarkerSizeType.DrawingScale;
-            pointStyle.MarkerSize = 1.0/ 1000;
+            pointStyle.MarkerSize = 0.5/ 1000;
 
             // Defining the value for the PointMarkerDisplayType. Only need Custom type.
             pointStyle.MarkerType = PointMarkerDisplayType.UseCustomMarker;

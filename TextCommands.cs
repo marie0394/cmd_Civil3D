@@ -320,8 +320,8 @@ namespace cmd_AutoCAD
 
         }
 
-        [CommandMethod("GetPointCoordinates")]
-        public void GetPointCoordinates()
+        [CommandMethod("TABLEFROMPOINTS")]
+        public void tableFromPoints()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;

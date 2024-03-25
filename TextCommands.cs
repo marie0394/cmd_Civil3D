@@ -321,37 +321,36 @@ namespace cmd_AutoCAD
         }
 
         [CommandMethod("GetPointCoordinates")]
-        public void GetCircleCenterCoordinates()
+        public void GetPointCoordinates()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
             Editor ed = doc.Editor;
 
-            // List to store center coordinates of selected circles
-            List<Point3d> centerPoints = new List<Point3d>();
+            // List to store selected points
+            List<Point3d> selectedPoints = new List<Point3d>();
 
-            // Prompt user to select circles
-            PromptSelectionOptions pso = new PromptSelectionOptions();
-            pso.MessageForAdding = "\nSelect circles: ";
-            pso.SingleOnly = false;
-            pso.SinglePickInSpace = false;
+            // Prompt user to click points
+            PromptPointOptions ppo = new PromptPointOptions("\nClick points in the model space. Press Enter to finish: ");
+            ppo.AllowNone = true;
 
-            SelectionFilter filter = new SelectionFilter(new TypedValue[] { new TypedValue((int)DxfCode.Start, "CIRCLE") });
+            while (true)
+            {
+                PromptPointResult ppr = ed.GetPoint(ppo);
+                if (ppr.Status == PromptStatus.OK)
+                {
+                    selectedPoints.Add(ppr.Value);
+                }
+                else
+                {
+                    break; // Exit loop if Enter key is pressed
+                }
+            }
 
-            PromptSelectionResult psr = ed.GetSelection(pso, filter);
-            if (psr.Status == PromptStatus.OK)
+            if (selectedPoints.Count > 0)
             {
                 using (Transaction tr = db.TransactionManager.StartTransaction())
                 {
-                    foreach (SelectedObject selObj in psr.Value)
-                    {
-                        Circle circle = tr.GetObject(selObj.ObjectId, OpenMode.ForRead) as Circle;
-                        if (circle != null)
-                        {
-                            centerPoints.Add(circle.Center);
-                        }
-                    }
-
                     // Prompt user to select insertion point for the table
                     PromptPointOptions opts = new PromptPointOptions("\nSelect insertion point for the table: ");
                     PromptPointResult ptRes = ed.GetPoint(opts);
@@ -363,8 +362,8 @@ namespace cmd_AutoCAD
                         BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                         BlockTableRecord btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
-                        // Calculate the size of the table based on the number of selected circles
-                        int numRows = centerPoints.Count; // One extra row for the header
+                        // Calculate the size of the table based on the number of selected points
+                        int numRows = selectedPoints.Count; 
                         int numCols = 2; // Two columns for X and Y coordinates
                         Autodesk.AutoCAD.DatabaseServices.Table table = new Autodesk.AutoCAD.DatabaseServices.Table();
                         table.SetSize(numRows, numCols);
@@ -376,24 +375,28 @@ namespace cmd_AutoCAD
                         // Set the insertion point for the table
                         table.Position = insertPoint;
 
-                        // Setting table Style
+                        // Setting table Style. This is needed so that the row style line works.
                         Autodesk.AutoCAD.DatabaseServices.TableStyle ts = new Autodesk.AutoCAD.DatabaseServices.TableStyle();
                         table.TableStyle = ts.ObjectId;
-                        // Add the center coordinates of selected circles to the table
 
-                        for (int i = 0; i < centerPoints.Count; i++)
+                        // Add the selected points to the table
+                        for (int i = 0; i < selectedPoints.Count; i++)
                         {
                             table.Rows[i].Style = "Data";
-                            table.Cells[i, 0].TextString = centerPoints[i].Y.ToString();
-                            table.Cells[i, 1].TextString = centerPoints[i].X.ToString();
+                            table.Cells[i, 0].TextString = Math.Round(selectedPoints[i].Y, 3).ToString();
+                            table.Cells[i, 1].TextString = Math.Round(selectedPoints[i].X, 3).ToString();
                         }
 
                         // Commit the transaction
                         tr.Commit();
 
-                        ed.WriteMessage("\nCenter coordinates of the circles added as a table.");
+                        ed.WriteMessage("\nSelected points added as a table.");
                     }
                 }
+            }
+            else
+            {
+                ed.WriteMessage("\nNo points selected.");
             }
         }
 

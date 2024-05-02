@@ -104,22 +104,31 @@ namespace cmd_C3D
             LabelStyle pointLabelStyle = pointLabelStyleId.GetObject(OpenMode.ForWrite) as LabelStyle;
             pointLabelStyle.RemoveComponent("Point Number");
             ObjectIdCollection txtComponentIds = pointLabelStyle.GetComponents(LabelStyleComponentType.Text);
+
             LabelStyleTextComponent pointElevationText = txtComponentIds[0].GetObject(OpenMode.ForWrite) as LabelStyleTextComponent;
             pointElevationText.General.AnchorComponent.Value = ""; // Set anchor to <feature>
             pointElevationText.General.AnchorPoint.Value = Autodesk.Civil.AnchorLocationType.MiddleRight;
+
             pointElevationText.Text.Color.Value = color;
             pointElevationText.Text.Height.Value = textSize;
-            pointElevationText.Text.XOffset.Value = 0;
             pointElevationText.Text.Attachment.Value = Autodesk.Civil.LabelTextAttachmentType.BottomLeft;
+            pointElevationText.Text.XOffset.Value = 0;
             pointElevationText.Border.Gap.Value = gapSize;
 
             LabelStyleTextComponent pointDescriptionText = txtComponentIds[1].GetObject(OpenMode.ForWrite) as LabelStyleTextComponent;
+            pointDescriptionText.General.AnchorComponent.Value = ""; // Set anchor to <feature>
+            pointDescriptionText.General.AnchorPoint.Value = Autodesk.Civil.AnchorLocationType.MiddleRight;
+
             pointDescriptionText.Text.Color.Value = color;
             pointDescriptionText.Text.Height.Value = textSize;
-            pointElevationText.Border.Gap.Value = gapSize;
+            pointDescriptionText.Text.Attachment.Value = Autodesk.Civil.LabelTextAttachmentType.TopLeft;
+            pointDescriptionText.Text.XOffset.Value = 0;
+            pointDescriptionText.Border.Gap.Value = gapSize;
+
+            
 
             return pointLabelStyleId;
-            
+
         }
 
         public static ObjectId CreateNewPointStyle(string name, Color color, PointStyleCollection pointStyles)
